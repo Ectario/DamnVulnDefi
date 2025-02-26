@@ -77,7 +77,11 @@ contract NaiveReceiverChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_naiveReceiver() public checkSolvedByPlayer {
-        
+        bytes[] memory data = new bytes[](1);
+        data[0] = abi.encodeWithSignature("maxFlashLoan(address)", address(weth));
+        console.log("test:");
+        pool.multicall(data);
+        console.log("works?");
     }
 
     /**

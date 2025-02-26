@@ -95,6 +95,11 @@ contract UnstoppableChallenge is Test {
         token.transfer(address(vault), 1);
     }
 
+    // fuzzing
+    function invariant_unstoppable_pool_balance_and_supply_check() public view {
+        assert(vault.convertToShares(vault.totalSupply()) == token.balanceOf(address(vault)));
+    }
+
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
      */
