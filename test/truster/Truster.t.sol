@@ -54,6 +54,11 @@ contract TrusterChallenge is Test {
         
     }
 
+    // // fuzzing
+    // function invariant_pool_balance() public view {
+    //     assert(TOKENS_IN_POOL == token.balanceOf(address(pool)));
+    // }
+
     /**
      * CHECKS SUCCESS CONDITIONS - DO NOT TOUCH
      */
