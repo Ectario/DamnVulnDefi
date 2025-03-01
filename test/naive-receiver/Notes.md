@@ -53,9 +53,10 @@ In `NaiveReceiverPool.sol`:
 
 The point:
 If the msg.sender is the trustedForwarder and the msg.data length is at least 20 bytes, it extracts the actual sender’s address from the last 20 bytes of msg.data.
-So it seems we will be able to request a the deployer to withdraw.
+So it seems we will be able to request as the deployer to withdraw.
 
-**EDIT: wtf did i think, we can't manipulate the last 20 bytes since it's the forwarder who append it, confusion between "first" and "last" item...**
+**EDIT: wtf did i think, we can't manipulate the last 20 bytes since it's the forwarder who append it...**
+**EDIT 2: IT IS POSSIBLE! I WAS RIGHT! The forwarder X _msgSender() security check only applies to direct calls from execute, not to multicall, which can be manipulated to set the sender to any address we choose**
 
 In `BasicForwarder.sol`:
 
@@ -68,7 +69,7 @@ In `BasicForwarder.sol`:
         uint256 gasLeft;
         uint256 value = request.value; // in wei
         address target = request.target;
-        bytes memory payload = abi.encodePacked(request.data, request.from);//                  <------ here we will be able to not use the true packed request.from (cf. the _msgSender() function describe above, EDIT: epic fail, confusion between "first" and "last" item xD )
+        bytes memory payload = abi.encodePacked(request.data, request.from);//                  <------ here we will be able to not use the true packed request.from since we will use the multicall datas for internal calls (cf. the _msgSender() function describe above)
         uint256 forwardGas = request.gas;
         assembly {
             success := call(forwardGas, target, value, add(payload, 0x20), mload(payload), 0, 0) // do the call
