@@ -4,6 +4,7 @@ pragma solidity =0.8.25;
 
 import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
+import {ExploitHelper} from "./Exploiter.sol";
 import {TrusterLenderPool} from "../../src/truster/TrusterLenderPool.sol";
 
 contract TrusterChallenge is Test {
@@ -51,7 +52,9 @@ contract TrusterChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_truster() public checkSolvedByPlayer {
-        
+        ExploitHelper exploitHelper = new ExploitHelper(address(token));
+        bytes32 digest = exploitHelper.getPermitDigest(address(pool), address(exploitHelper), TOKENS_IN_POOL, 0, block.timestamp + 1 hours);
+        // fok i haven't thought of it, i can"t just sign it like i wanted because the setup doesn't provide the secret key of player, i don't know if that is intended (since i'm the player i should be able to get it?)  :/
     }
 
     // // fuzzing
