@@ -146,9 +146,63 @@ contract TheRewarderChallenge is Test {
 
     /**
      * CODE YOUR SOLUTION HERE
+     * player addr = 0x44E97aF4418b7a17AABD8090bEA0A471a366305C
+     * player is index 188
      */
     function test_theRewarder() public checkSolvedByPlayer {
-        
+        uint256 PLAYER_CLAIM_DVT = 11524763827831882;
+        uint256 PLAYER_CLAIM_WETH = 1171088749244340;
+
+        // Let's claim rewards for Player.
+        // Calculate roots for DVT and WETH distributions
+        bytes32[] memory dvtLeaves = _loadRewards("/test/the-rewarder/dvt-distribution.json");
+        bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
+        merkle = new Merkle();
+        dvtRoot = merkle.getRoot(dvtLeaves);
+        wethRoot = merkle.getRoot(wethLeaves);
+
+        // Set DVT and WETH as tokens to claim
+        IERC20[] memory tokensToClaim = new IERC20[](2);
+        tokensToClaim[0] = IERC20(address(dvt));
+        tokensToClaim[1] = IERC20(address(weth));
+
+        // Create Player's claims
+        Claim[] memory claims = new Claim[](4);
+
+        // First, the DVT claim
+        claims[0] = Claim({
+            batchNumber: 0, // claim corresponds to first DVT batch
+            amount: PLAYER_CLAIM_DVT,
+            tokenIndex: 0, // claim corresponds to first token in `tokensToClaim` array
+            proof: merkle.getProof(dvtLeaves, 188) // player's address is at index 188
+        });
+
+        // And then, the WETH claim
+        claims[1] = Claim({
+            batchNumber: 0, // claim corresponds to first WETH batch
+            amount: PLAYER_CLAIM_WETH,
+            tokenIndex: 1, // claim corresponds to second token in `tokensToClaim` array
+            proof: merkle.getProof(wethLeaves, 188) // player's address is at index 188
+        });
+
+        // First, the DVT claim
+        claims[2] = Claim({
+            batchNumber: 1, // claim corresponds to first DVT batch
+            amount: PLAYER_CLAIM_DVT,
+            tokenIndex: 0, // claim corresponds to first token in `tokensToClaim` array
+            proof: merkle.getProof(dvtLeaves, 188) // player's address is at index 188
+        });
+
+        // And then, the WETH claim
+        claims[3] = Claim({
+            batchNumber: 1, // claim corresponds to first WETH batch
+            amount: PLAYER_CLAIM_WETH,
+            tokenIndex: 1, // claim corresponds to second token in `tokensToClaim` array
+            proof: merkle.getProof(wethLeaves, 188) // player's address is at index 188
+        });
+
+        // Player claims once
+        distributor.claimRewards({inputClaims: claims, inputTokens: tokensToClaim});
     }
 
     /**

@@ -8,6 +8,8 @@ import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 
+import {console2} from "forge-std/console2.sol";
+
 struct Distribution {
     uint256 remaining;
     uint256 nextBatchNumber;
@@ -110,7 +112,6 @@ contract TheRewarderDistributor {
 
             bytes32 leaf = keccak256(abi.encodePacked(msg.sender, inputClaim.amount));
             bytes32 root = distributions[token].roots[inputClaim.batchNumber];
-
             if (!MerkleProof.verify(inputClaim.proof, root, leaf)) revert InvalidProof();
 
             inputTokens[inputClaim.tokenIndex].transfer(msg.sender, inputClaim.amount);
