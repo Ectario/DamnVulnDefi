@@ -1,59 +1,44 @@
-# Damn Vulnerable DeFi
+# Where am I
 
-Damn Vulnerable DeFi is _the_ smart contract security playground for developers, security researchers and educators.
+_This is a side project I work on when I'm bored — a collection of Damn Vulnerable DeFi challenges (Damn Vuln DeFi).
+I take notes as I work through each challenge, so if you're interested, feel free to check them out!_
 
-Perhaps the most sophisticated vulnerable set of Solidity smart contracts ever witnessed, it features flashloans, price oracles, governance, NFTs, DEXs, lending pools, smart contract wallets, timelocks, vaults, meta-transactions, token distributions, upgradeability and more.
+| #  | Name           | Done | My Own Comments | Notes Link                            |
+| -- | -------------- | ---- | -------- | ------------------------------------- |
+| 1  | Unstoppable    | ✅    |    funny lil' one      | [Notes](test/unstoppable/Notes.md)    |
+| 2  | Naive receiver | ✅    |    not as easy as you'd expect for a second challenge, wtf     | [Notes](test/naive-receiver/Notes.md) |
+| 3  | Truster        | ✅    |    thinkin' weird ain't always the move lolz     | [Notes](test/truster/Notes.md)        |
+| 4  | Side Entrance  | ✅    |    classic lil' trick but still funny     | [Notes](test/side-entrance/Notes.md)  |
+| 5  | The Rewarder   | ✅    |    couldn't be bothered to read all the code, so I built a fuzzer to find the vuln for me lolz      | [Notes](test/the-rewarder/Notes.md)   |
+| 6  | Selfie         | ✅    |    easy but kinda fun imo      | [Notes](test/selfie/Notes.md)         |
+| 7  | Compromised    | ✅    |    felt like in CTF (not hard tbh but cool one)      | [Notes](test/compromised/Notes.md)    |
+| 8  | Puppet         | ✅    |    cool AMM setup      | [Notes](test/puppet/Notes.md)         |
+| 9  | Puppet V2      | ✅    |    a bit more realistic AMM (nice one tbh)      | [Notes](test/puppet-v2/Notes.md)      |
+| 10 | Free Rider     | TO START     |          |                                       |
+| 11 | Backdoor       |      |          |                                       |
+| 12 | Climber        |      |          |                                       |
+| 13 | Wallet Mining  |      |          |                                       |
+| 14 | Puppet V3      |      |          |                                       |
+| 15 | ABI Smuggling  |      |          |                                       |
+| 16 | Shards         |      |          |                                       |
+| 17 | Curvy Puppet   |      |          |                                       |
+| 18 | Withdrawal     |      |          |                                       |
 
-Use Damn Vulnerable DeFi to:
+## Where I've found those challs
 
-- Sharpen your auditing and bug-hunting skills.
-- Learn how to detect, test and fix flaws in realistic scenarios to become a security-minded developer.
-- Benchmark smart contract security tooling.
-- Create educational content on smart contract security with articles, tutorials, talks, courses, workshops, trainings, CTFs, etc. 
+Check out [WHATISDAMNVULNDEFI.md](WHATISDAMNVULNDEFI.md)
 
-## Install
+For the lazy ones:
 
-1. Clone the repository.
-2. Checkout the latest release (for example, `git checkout v4.0.1`)
-3. Rename the `.env.sample` file to `.env` and add a valid RPC URL. This is only needed for the challenges that fork mainnet state.
-4. Either install [Foundry](https://book.getfoundry.sh/getting-started/installation), or use the [provided devcontainer](./.devcontainer/) (In VSCode, open the repository as a devcontainer with the command "Devcontainer: Open Folder in Container...")
-5. Run `forge build` to initialize the project.
-
-## Usage
-
-Each challenge is made up of:
-
-- A prompt located in `src/<challenge-name>/README.md`.
-- A set of contracts located in `src/<challenge-name>/`.
-- A [Foundry test](https://book.getfoundry.sh/forge/tests) located in `test/<challenge-name>/<ChallengeName>.t.sol`.
-
-To solve a challenge:
-
-1. Read the challenge's prompt.
-2. Uncover the flaw(s) in the challenge's smart contracts.
-3. Code your solution in the corresponding test file.
-4. Try your solution with `forge test --mp test/<challenge-name>/<ChallengeName>.t.sol`.
-
-> In challenges that restrict the number of transactions, you might need to run the test with the `--isolate` flag.
-
-If the test passes, you've solved the challenge!
-
-Challenges may have more than one possible solution.
-
-### Rules
-
-- You must always use the `player` account.
-- You must not modify the challenges' initial nor final conditions.
-- You can code and deploy your own smart contracts.
-- You can use Foundry's cheatcodes to advance time when necessary.
-- You can import external libraries that aren't installed, although it shouldn't be necessary.
-
-## Troubleshooting
-
-You can ask the community for help in [the discussions section](https://github.com/theredguild/damn-vulnerable-defi/discussions).
-
-## Disclaimer
-
-All code, practices and patterns in this repository are DAMN VULNERABLE and for educational purposes only.
-
-DO NOT USE IN PRODUCTION.
+> 
+> Here's the [Website](https://www.damnvulnerabledefi.xyz/)
+>
+> Damn Vulnerable DeFi is _the_ smart contract security playground for developers, security researchers and educators.
+>
+> ### Rules
+> 
+> - You must always use the `player` account.
+> - You must not modify the challenges' initial nor final conditions.
+> - You can code and deploy your own smart contracts.
+> - You can use Foundry's cheatcodes to advance time when necessary.
+> - You can import external libraries that aren't installed, although it shouldn't be necessary.
