@@ -14,7 +14,7 @@ I take notes as I work through each challenge, so if you're interested, feel fre
 | 7  | Compromised    | ✅    |    felt like in CTF (not hard tbh but cool one)      | [Notes](test/compromised/Notes.md)    |
 | 8  | Puppet         | ✅    |    cool AMM setup      | [Notes](test/puppet/Notes.md)         |
 | 9  | Puppet V2      | ✅    |    a bit more realistic AMM (nice one tbh)      | [Notes](test/puppet-v2/Notes.md)      |
-| 10 | Free Rider     | TO START     |          |                                       |
+| 10 | Free Rider     | Fullchain probably found.. need to write exploit but lazy atm i'll do it later (don't judge, i'm just sleepy rn) :x     |          |  [Notes](test/free-rider/Notes.md)                                     |
 | 11 | Backdoor       |      |          |                                       |
 | 12 | Climber        |      |          |                                       |
 | 13 | Wallet Mining  |      |          |                                       |
