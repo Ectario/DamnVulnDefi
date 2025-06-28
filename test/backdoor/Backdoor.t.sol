@@ -5,14 +5,23 @@ pragma solidity =0.8.25;
 import {Test, console} from "forge-std/Test.sol";
 import {Safe} from "@safe-global/safe-smart-account/contracts/Safe.sol";
 import {SafeProxyFactory} from "@safe-global/safe-smart-account/contracts/proxies/SafeProxyFactory.sol";
+import {IProxyCreationCallback} from "@safe-global/safe-smart-account/contracts/proxies/IProxyCreationCallback.sol";
+import {SafeProxy} from "@safe-global/safe-smart-account/contracts/proxies/SafeProxy.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
 import {WalletRegistry} from "../../src/backdoor/WalletRegistry.sol";
+import {OwnerManager} from "@safe-global/safe-smart-account/contracts/base/OwnerManager.sol";
+import "./Exploiter.sol";
 
 contract BackdoorChallenge is Test {
     address deployer = makeAddr("deployer");
     address player = makeAddr("player");
     address recovery = makeAddr("recovery");
-    address[] users = [makeAddr("alice"), makeAddr("bob"), makeAddr("charlie"), makeAddr("david")];
+    address[] users = [
+        makeAddr("alice"),
+        makeAddr("bob"),
+        makeAddr("charlie"),
+        makeAddr("david")
+    ];
 
     uint256 constant AMOUNT_TOKENS_DISTRIBUTED = 40e18;
 
@@ -41,7 +50,12 @@ contract BackdoorChallenge is Test {
         token = new DamnValuableToken();
 
         // Deploy the registry
-        walletRegistry = new WalletRegistry(address(singletonCopy), address(walletFactory), address(token), users);
+        walletRegistry = new WalletRegistry(
+            address(singletonCopy),
+            address(walletFactory),
+            address(token),
+            users
+        );
 
         // Transfer tokens to be distributed to the registry
         token.transfer(address(walletRegistry), AMOUNT_TOKENS_DISTRIBUTED);
@@ -54,7 +68,10 @@ contract BackdoorChallenge is Test {
      */
     function test_assertInitialState() public {
         assertEq(walletRegistry.owner(), deployer);
-        assertEq(token.balanceOf(address(walletRegistry)), AMOUNT_TOKENS_DISTRIBUTED);
+        assertEq(
+            token.balanceOf(address(walletRegistry)),
+            AMOUNT_TOKENS_DISTRIBUTED
+        );
         for (uint256 i = 0; i < users.length; i++) {
             // Users are registered as beneficiaries
             assertTrue(walletRegistry.beneficiaries(users[i]));
@@ -70,7 +87,23 @@ contract BackdoorChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_backdoor() public checkSolvedByPlayer {
-        
+        // not optimal conversion lol
+        // but that's just for the PoC so let's blindly say that it's okay
+        address[4] memory beneficiaries;
+        for (uint i = 0; i < 4; i++) {
+            beneficiaries[i] = users[i];
+        }
+
+        // exploitation time
+        Exploiter exploit = new Exploiter(
+            address(singletonCopy),
+            address(walletFactory),
+            address(walletRegistry),
+            address(token),
+            recovery,
+            beneficiaries
+        );
+        exploit.pwn();
     }
 
     /**

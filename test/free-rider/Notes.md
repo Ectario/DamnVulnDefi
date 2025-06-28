@@ -61,6 +61,6 @@ Nop! even better:
 
 The real mess is in _buyOne(). They transfer the NFT before paying the seller, and then they use `ownerOf(tokenId)` after the transfer to figure out who to send the ETH to... which is now the buyer. So basically, I can buy the NFT with `msg.value` and get that ETH sent straight back to me. It's just a free mint at that point. And if I run this through `buyMany()`, I can do it in a loop and pick up multiple NFTs while the contract keeps refunding me every time. No value actually leaves my account.
 
-Now we need a flash loan like thing from uniswap, let google it; hello you: https://docs.uniswap.org/contracts/v2/guides/smart-contract-integration/using-flash-swaps
+Now we need a flash loan like thing from uniswap, let's google it; hello you: https://docs.uniswap.org/contracts/v2/guides/smart-contract-integration/using-flash-swaps (and you https://medium.com/buildbear/flash-swap-5bcdbd9aaa14)
 
 So, even if I don’t have enough ETH up front, this is still totally exploitable with a flash loan. Uniswap v2 flash swaps let me borrow WETH, unwrap it to ETH, and run the whole buy + refund loop in a single tx. Then I just collect the bounty (from the onERC721Received trigger when I hit 6 NFTs), wrap the ETH back into WETH, repay the flash loan, and walk away with the bounty as profit. I don’t need to put up any ETH of my own — it’s just a matter of packaging the attack cleanly.
